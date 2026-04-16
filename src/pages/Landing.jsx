@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useLang } from '../context/LanguageContext';
+
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },

@@ -5,6 +5,28 @@ import { useLang } from '../context/LanguageContext';
 
 const GOLD = '#c9a84c';
 
+const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+const DAYS_EN = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const DAYS_FR = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+
+function getCalendarWeeks(year, month) {
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const startDow = (firstDay.getDay() + 6) % 7; // Monday = 0
+  const weeks = [];
+  let week = Array(startDow).fill(null);
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    week.push(d);
+    if (week.length === 7) { weeks.push(week); week = []; }
+  }
+  if (week.length > 0) {
+    while (week.length < 7) week.push(null);
+    weeks.push(week);
+  }
+  return weeks;
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const { lang, changeLang } = useLang();
@@ -15,9 +37,25 @@ export default function Dashboard() {
   const [currentPnl, setCurrentPnl] = useState(0);
   const [notes, setNotes] = useState('');
 
+  const today = new Date();
+  const [calYear, setCalYear] = useState(today.getFullYear());
+  const [calMonth, setCalMonth] = useState(today.getMonth());
+
+  // Charger daily_pnl depuis localStorage
+  const rawDailyPnl = JSON.parse(localStorage.getItem('fxcoach_daily_pnl') || '[]');
+  const dailyMap = {};
+  rawDailyPnl.forEach(({ date, pnl }) => { dailyMap[date] = pnl; });
+
   const targetAmount = capital * targetPct / 100;
   const drawdownAmount = capital * drawdownPct / 100;
   const progressPct = Math.min(Math.max((currentPnl / targetAmount) * 100, 0), 100);
+
+  // Stats du mois affiché
+  const monthStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}`;
+  const monthEntries = Object.entries(dailyMap).filter(([d]) => d.startsWith(monthStr));
+  const monthPnl = monthEntries.reduce((sum, [, v]) => sum + v, 0);
+  const greenDays = monthEntries.filter(([, v]) => v > 0).length;
+  const redDays = monthEntries.filter(([, v]) => v < 0).length;
 
   const t = {
     title: lang === 'EN' ? 'Dashboard — Challenge Tracker' : 'Dashboard — Suivi de challenge',
@@ -25,9 +63,10 @@ export default function Dashboard() {
     capital: lang === 'EN' ? 'Account capital (€)' : 'Capital du compte (€)',
     target: lang === 'EN' ? 'Profit target (%)' : 'Objectif de profit (%)',
     drawdown: lang === 'EN' ? 'Max drawdown (%)' : 'Drawdown maximum (%)',
-    currentPnl: lang === 'EN' ? 'Current P&L (€)' : 'P&L actuel (€)',
+    currentPnlLabel: lang === 'EN' ? 'Current P&L (€)' : 'P&L actuel (€)',
     progress: lang === 'EN' ? '📈 Progress toward target' : '📈 Progression vers l\'objectif',
     score: lang === 'EN' ? '🎯 Discipline score' : '🎯 Score de discipline',
+    calendar: lang === 'EN' ? '📅 Trading calendar' : '📅 Calendrier de trading',
     notes: lang === 'EN' ? '📝 My personal notes' : '📝 Mes notes personnelles',
     notesPlaceholder: lang === 'EN' ? 'Write your observations, resolutions, focus points...' : 'Écris tes observations, tes résolutions, tes points d\'attention...',
     back: lang === 'EN' ? '← Back' : '← Retour',
@@ -35,6 +74,10 @@ export default function Dashboard() {
     pnlLabel: lang === 'EN' ? 'Current P&L' : 'P&L actuel',
     targetLabel: lang === 'EN' ? 'Target' : 'Objectif',
     maxDD: 'Max drawdown',
+    monthPnl: lang === 'EN' ? 'Month P&L' : 'P&L du mois',
+    greenDays: lang === 'EN' ? 'Green days' : 'Jours verts',
+    redDays: lang === 'EN' ? 'Red days' : 'Jours rouges',
+    noData: lang === 'EN' ? 'Run an analysis to see your trading calendar.' : 'Lance une analyse pour voir ton calendrier de trading.',
   };
 
   const getProgressStatus = () => {
@@ -45,6 +88,18 @@ export default function Dashboard() {
   };
 
   const status = getProgressStatus();
+  const weeks = getCalendarWeeks(calYear, calMonth);
+  const months = lang === 'EN' ? MONTHS_EN : MONTHS_FR;
+  const days = lang === 'EN' ? DAYS_EN : DAYS_FR;
+
+  const prevMonth = () => {
+    if (calMonth === 0) { setCalYear(y => y - 1); setCalMonth(11); }
+    else setCalMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (calMonth === 11) { setCalYear(y => y + 1); setCalMonth(0); }
+    else setCalMonth(m => m + 1);
+  };
 
   return (
     <div className="min-h-screen bg-white font-sans">
@@ -75,7 +130,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-2 gap-6">
             {[
               { label: t.capital, value: capital, setter: setCapital, min: 1000, max: 200000, step: 1000 },
-              { label: t.currentPnl, value: currentPnl, setter: setCurrentPnl, min: -50000, max: 200000, step: 100 },
+              { label: t.currentPnlLabel, value: currentPnl, setter: setCurrentPnl, min: -50000, max: 200000, step: 100 },
               { label: t.target, value: targetPct, setter: setTargetPct, min: 1, max: 20, step: 0.5 },
               { label: t.drawdown, value: drawdownPct, setter: setDrawdownPct, min: 1, max: 20, step: 0.5 },
             ].map(({ label, value, setter, min, max, step }) => (
@@ -99,8 +154,6 @@ export default function Dashboard() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
           className="p-6 rounded-2xl border border-gray-200 mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">{t.progress}</h2>
-
-          {/* METRICS */}
           <div className="grid grid-cols-3 gap-4 mb-6">
             {[
               { label: t.pnlLabel, value: `€${currentPnl}`, color: currentPnl >= 0 ? 'text-green-600' : 'text-red-500' },
@@ -113,8 +166,6 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-
-          {/* PROGRESS BAR */}
           <div className="mb-3 flex justify-between text-sm text-gray-500">
             <span>{lang === 'EN' ? 'Profit target' : 'Objectif de profit'}</span>
             <span className="font-semibold" style={{ color: GOLD }}>{progressPct.toFixed(1)}%</span>
@@ -128,15 +179,98 @@ export default function Dashboard() {
               style={{ backgroundColor: GOLD }}
             />
           </div>
-
-          {/* STATUS */}
           <div className={`p-4 rounded-xl border text-sm font-medium ${status.color}`}>
             {status.msg}
           </div>
         </motion.div>
 
-        {/* DISCIPLINE SCORE */}
+        {/* CALENDRIER */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+          className="p-6 rounded-2xl border border-gray-200 mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-6">{t.calendar}</h2>
+
+          {rawDailyPnl.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-400 text-sm mb-4">{t.noData}</p>
+              <button onClick={() => navigate('/analyse')}
+                className="px-5 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition"
+                style={{ backgroundColor: GOLD }}>
+                {t.analyse}
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Navigation mois */}
+              <div className="flex items-center justify-between mb-4">
+                <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-gray-100 transition text-gray-500 font-bold">←</button>
+                <span className="font-semibold text-gray-900">{months[calMonth]} {calYear}</span>
+                <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-gray-100 transition text-gray-500 font-bold">→</button>
+              </div>
+
+              {/* En-têtes jours */}
+              <div className="grid grid-cols-7 mb-2">
+                {days.map(d => (
+                  <div key={d} className="text-center text-xs font-semibold text-gray-400 py-1">{d}</div>
+                ))}
+              </div>
+
+              {/* Semaines */}
+              {weeks.map((week, wi) => (
+                <div key={wi} className="grid grid-cols-7 gap-1 mb-1">
+                  {week.map((day, di) => {
+                    if (!day) return <div key={di} />;
+                    const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const pnl = dailyMap[dateStr];
+                    const isToday = dateStr === today.toISOString().split('T')[0];
+
+                    if (pnl !== undefined) {
+                      const isGreen = pnl >= 0;
+                      return (
+                        <div key={di} className={`rounded-lg p-1 text-center ${isGreen ? 'bg-green-50' : 'bg-red-50'}`}>
+                          <div className="text-xs text-gray-400">{day}</div>
+                          <div className={`text-xs font-bold ${isGreen ? 'text-green-600' : 'text-red-500'}`}>
+                            {isGreen ? '+' : ''}{pnl}
+                          </div>
+                        </div>
+                      );
+                    }
+                    if (isToday) {
+                      return (
+                        <div key={di} className="rounded-lg p-1 text-center border-2" style={{ borderColor: GOLD }}>
+                          <div className="text-xs font-bold" style={{ color: GOLD }}>{day}</div>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div key={di} className="rounded-lg p-1 text-center bg-gray-50">
+                        <div className="text-xs text-gray-300">{day}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+
+              {/* Résumé du mois */}
+              {monthEntries.length > 0 && (
+                <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-100">
+                  {[
+                    { label: t.monthPnl, value: `€${monthPnl.toFixed(2)}`, color: monthPnl >= 0 ? 'text-green-600' : 'text-red-500' },
+                    { label: t.greenDays, value: greenDays, color: 'text-green-600' },
+                    { label: t.redDays, value: redDays, color: 'text-red-500' },
+                  ].map(({ label, value, color }) => (
+                    <div key={label} className="text-center">
+                      <div className={`text-xl font-bold ${color}`}>{value}</div>
+                      <div className="text-xs text-gray-400 uppercase tracking-wider mt-1">{label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </motion.div>
+
+        {/* DISCIPLINE SCORE */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
           className="p-6 rounded-2xl border border-gray-200 mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">{t.score}</h2>
           <div className="flex items-center gap-4">
@@ -147,17 +281,15 @@ export default function Dashboard() {
                 : 'Lance d\'abord une analyse pour obtenir ton score de discipline basé sur tes biais détectés.'}
             </p>
           </div>
-          <button
-            onClick={() => navigate('/analyse')}
+          <button onClick={() => navigate('/analyse')}
             className="mt-4 px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition hover:opacity-90"
-            style={{ backgroundColor: GOLD }}
-          >
+            style={{ backgroundColor: GOLD }}>
             {t.analyse}
           </button>
         </motion.div>
 
         {/* NOTES */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
           className="p-6 rounded-2xl border border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">{t.notes}</h2>
           <textarea
@@ -171,7 +303,6 @@ export default function Dashboard() {
 
       </div>
 
-      {/* FOOTER */}
       <footer className="py-8 text-center text-sm text-gray-400 border-t border-gray-100">
         FXCoach © 2026 — {lang === 'EN' ? 'Built for prop traders, by a prop trader.' : 'Conçu pour les prop traders, par une prop trader.'}
       </footer>

@@ -6,7 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LanguageContext';
 
-const API = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 export default function Analyse() {
   const navigate = useNavigate();
@@ -45,6 +45,9 @@ export default function Analyse() {
     upgradeBtn: lang === 'EN' ? '✨ Upgrade to Premium — €19/mo' : '✨ Passer Premium — €19/mois',
     logout: lang === 'EN' ? 'Logout' : 'Déconnexion',
     login: lang === 'EN' ? 'Login' : 'Connexion',
+    dashboardTitle: lang === 'EN' ? '📊 Track your challenge progress' : '📊 Suis ta progression de challenge',
+    dashboardSub: lang === 'EN' ? 'Set your targets and monitor your P&L over time.' : 'Définis tes objectifs et suis ton P&L dans le temps.',
+    dashboardBtn: lang === 'EN' ? 'Open Dashboard →' : 'Ouvrir le Dashboard →',
   };
 
   const handleAnalyze = async () => {
@@ -62,6 +65,7 @@ export default function Analyse() {
       setStats(res.data.stats);
       setBiases(res.data.biases);
       setHourStats(res.data.hour_stats);
+      localStorage.setItem('fxcoach_daily_pnl', JSON.stringify(res.data.daily_pnl || []));
     } catch (e) {
       console.error(e);
     } finally {
@@ -213,6 +217,24 @@ export default function Analyse() {
                 ⚠️ {stats.trades_no_sl} {lang === 'EN' ? 'trades with no stop loss — P&L:' : 'trades sans stop loss — P&L:'} ${stats.pnl_no_sl}
               </div>
             )}
+          </motion.div>
+        )}
+
+        {/* DASHBOARD CTA */}
+        {stats && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-2xl border border-gray-200 p-6 mb-6 flex items-center justify-between gap-4">
+            <div>
+              <div className="font-semibold text-gray-900 mb-1">{t.dashboardTitle}</div>
+              <div className="text-sm text-gray-400">{t.dashboardSub}</div>
+            </div>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="px-5 py-2.5 rounded-xl text-white font-semibold text-sm transition hover:opacity-90 whitespace-nowrap"
+              style={{backgroundColor: '#c9a84c'}}
+            >
+              {t.dashboardBtn}
+            </button>
           </motion.div>
         )}
 
