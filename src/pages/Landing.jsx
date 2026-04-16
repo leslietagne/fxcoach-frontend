@@ -256,8 +256,12 @@ export default function Landing() {
 
       {/* FOOTER */}
       <footer className="py-8 text-center text-sm text-gray-400 border-t border-gray-100">
-        {t.footer}
-      </footer>
-    </div>
+  <p className="mb-2">{t.footer}</p>
+  <div className="flex justify-center gap-6">
+    <button onClick={() => navigate('/mentions-legales')} className="hover:text-gray-600 transition">Mentions légales</button>
+    <button onClick={() => navigate('/cgu')} className="hover:text-gray-600 transition">CGU</button>
+    <a href="mailto:fxcoachh@gmail.com" className="hover:text-gray-600 transition">Contact</a>
+  </div>
+</footer>
   );
 }

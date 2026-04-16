@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard';
 import Auth from './pages/Auth';
 import Pricing from './pages/Pricing';
 import Success from './pages/Success';
+import MentionsLegales from './pages/MentionsLegales';
+import CGU from './pages/CGU';
 
 function App() {
   return (
@@ -17,7 +19,8 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/pricing" element={<Pricing />} />
-          <Route path="/success" element={<Success />} />
+          <Route path="/success" element={<Success />} /><Route path="/mentions-legales" element={<MentionsLegales />} />
+          <Route path="/cgu" element={<CGU />} />
         </Routes>
       </Router>
     </LanguageProvider>
