@@ -62,8 +62,8 @@ export default function Landing() {
   };
 
   const freeFeatures = lang === 'EN'
-    ? ["✅ Basic stats (win rate, R/R, net profit)", "✅ 1 bias detected — the most critical", "✅ Coach message preview", "🔒 Full coach report", "🔒 All biases detected", "🔒 Interactive charts", "🔒 Chat with AI coach", "🔒 FTMO progress tracking"]
-    : ["✅ Stats de base (win rate, R/R, profit net)", "✅ 1 biais détecté — le plus critique", "✅ Aperçu du message coach", "🔒 Rapport coach complet", "🔒 Tous les biais détectés", "🔒 Graphiques interactifs", "🔒 Chat avec le coach IA", "🔒 Suivi progression FTMO"];
+    ? ["✅ Basic stats (win rate, R/R, net profit)", "✅ 1 bias detected — the most critical", "✅ Coach message preview", "✅ Dashboard + trading calendar","🔒 Full coach report", "🔒 All biases detected", "🔒 Interactive charts", "🔒 Chat with AI coach", "🔒 FTMO progress tracking"]
+    : ["✅ Stats de base (win rate, R/R, profit net)", "✅ 1 biais détecté — le plus critique", "✅ Aperçu du message coach", "✅ Dashboard + calendrier de trading","🔒 Rapport coach complet", "🔒 Tous les biais détectés", "🔒 Graphiques interactifs", "🔒 Chat avec le coach IA", "🔒 Suivi progression FTMO"];
 
   const premiumFeatures = lang === 'EN'
     ? ["✅ Full stats + interactive charts", "✅ All biases detected (personalized AI)", "✅ Full coach report in natural language", "✅ Chat with AI coach", "✅ Progress tracking + FTMO countdown", "✅ Key points for your next trades", "✅ Personal notes", "✅ Multilingual"]
