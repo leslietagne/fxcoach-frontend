@@ -4,12 +4,12 @@ const LanguageContext = createContext({});
 
 export function LanguageProvider({ children }) {
   const [lang, setLang] = useState(() => {
-    return localStorage.getItem('fxcoach_lang') || 'EN';
+    return sessionStorage.getItem('fxcoach_lang') || 'EN';
   });
 
   const changeLang = (newLang) => {
     setLang(newLang);
-    localStorage.setItem('fxcoach_lang', newLang);
+    sessionStorage.setItem('fxcoach_lang', newLang);
   };
 
   return (
