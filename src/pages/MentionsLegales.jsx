@@ -20,7 +20,7 @@ export default function MentionsLegales() {
           <section>
             <h2 className="text-lg font-semibold text-gray-900 mb-3">Éditeur du site</h2>
             <p>Nom : FXCoach</p>
-            <p>Adresse : Argenteuil, France</p>
+            <p>Adresse : Paris, France</p>
             <p>Email : fxcoachh@gmail.com</p>
             <p>Site web : https://fxcoach-vert.vercel.app</p>
           </section>
