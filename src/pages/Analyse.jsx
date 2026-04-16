@@ -332,24 +332,15 @@ export default function Analyse() {
                   animate={{ opacity: 1 }}
                   className="flex justify-start"
                 >
-                  <div className="bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl rounded-bl-sm">
-                    <div className="flex gap-1 items-center h-4">
-                      <motion.div
-                        animate={{ scale: [1, 1.3, 1] }}
-                        transition={{ repeat: Infinity, duration: 0.8, delay: 0 }}
-                        className="w-2 h-2 rounded-full bg-gray-400"
-                      />
-                      <motion.div
-                        animate={{ scale: [1, 1.3, 1] }}
-                        transition={{ repeat: Infinity, duration: 0.8, delay: 0.2 }}
-                        className="w-2 h-2 rounded-full bg-gray-400"
-                      />
-                      <motion.div
-                        animate={{ scale: [1, 1.3, 1] }}
-                        transition={{ repeat: Infinity, duration: 0.8, delay: 0.4 }}
-                        className="w-2 h-2 rounded-full bg-gray-400"
-                      />
-                    </div>
+                  <div className="bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl rounded-bl-sm"><div className="bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl rounded-bl-sm">
+                    <motion.div
+                      animate={{ opacity: [1, 0.3, 1] }}
+                      transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                      style={{backgroundColor: '#c9a84c'}}
+                    >
+                      FX
+                    </motion.div>
                   </div>
                 </motion.div>
               )}
