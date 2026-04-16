@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -21,6 +21,13 @@ export default function Analyse() {
   const [chat, setChat] = useState([]);
   const [question, setQuestion] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chat]);
 
   const t = {
     title: lang === 'EN' ? 'Your trade analysis' : 'Analyse de tes trades',
@@ -108,16 +115,16 @@ export default function Analyse() {
   };
 
   const markdownComponents = {
-    h1: ({children}) => <h1 style={{fontSize: '18px', fontWeight: '700', marginBottom: '12px', marginTop: '20px', color: '#111827'}}>{children}</h1>,
-    h2: ({children}) => <h2 style={{fontSize: '16px', fontWeight: '700', marginBottom: '10px', marginTop: '18px', color: '#111827'}}>{children}</h2>,
-    h3: ({children}) => <h3 style={{fontSize: '15px', fontWeight: '600', marginBottom: '8px', marginTop: '16px', color: '#111827'}}>{children}</h3>,
-    p: ({children}) => <p style={{marginBottom: '12px'}}>{children}</p>,
+    h1: ({children}) => <h1 style={{fontSize: '16px', fontWeight: '700', marginBottom: '8px', marginTop: '16px', color: '#111827'}}>{children}</h1>,
+    h2: ({children}) => <h2 style={{fontSize: '15px', fontWeight: '700', marginBottom: '6px', marginTop: '14px', color: '#111827'}}>{children}</h2>,
+    h3: ({children}) => <h3 style={{fontSize: '14px', fontWeight: '600', marginBottom: '4px', marginTop: '12px', color: '#111827'}}>{children}</h3>,
+    p: ({children}) => <p style={{marginBottom: '10px'}}>{children}</p>,
     strong: ({children}) => <strong style={{fontWeight: '600', color: '#111827'}}>{children}</strong>,
     em: ({children}) => <em style={{fontStyle: 'italic'}}>{children}</em>,
-    ul: ({children}) => <ul style={{paddingLeft: '20px', marginBottom: '12px'}}>{children}</ul>,
-    ol: ({children}) => <ol style={{paddingLeft: '20px', marginBottom: '12px'}}>{children}</ol>,
+    ul: ({children}) => <ul style={{paddingLeft: '16px', marginBottom: '10px'}}>{children}</ul>,
+    ol: ({children}) => <ol style={{paddingLeft: '16px', marginBottom: '10px'}}>{children}</ol>,
     li: ({children}) => <li style={{marginBottom: '4px', listStyleType: 'disc'}}>{children}</li>,
-    hr: () => <hr style={{border: 'none', borderTop: '1px solid #e5e7eb', margin: '16px 0'}} />,
+    hr: () => <hr style={{border: 'none', borderTop: '1px solid #e5e7eb', margin: '12px 0'}} />,
   };
 
   return (
@@ -294,22 +301,59 @@ export default function Analyse() {
         {stats && isPremium && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl border border-gray-200 p-8">
             <h2 className="text-lg font-bold text-gray-900 mb-6">💬 {t.chatTitle}</h2>
-            <div className="space-y-4 mb-6 max-h-80 overflow-y-auto">
+            <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
               {chat.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
                   <div
-                    className={`max-w-xs px-4 py-3 rounded-2xl text-sm ${msg.role === 'user' ? 'text-white rounded-br-sm' : 'bg-gray-100 text-gray-700 rounded-bl-sm'}`}
+                    className={`max-w-sm px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                      msg.role === 'user'
+                        ? 'text-white rounded-br-sm'
+                        : 'bg-gray-50 text-gray-700 rounded-bl-sm border border-gray-100'
+                    }`}
                     style={msg.role === 'user' ? {backgroundColor: '#c9a84c'} : {}}
                   >
-                    {msg.content}
+                    {msg.role === 'assistant' ? (
+                      <ReactMarkdown components={markdownComponents}>{msg.content}</ReactMarkdown>
+                    ) : (
+                      msg.content
+                    )}
                   </div>
-                </div>
+                </motion.div>
               ))}
               {chatLoading && (
-                <div className="flex justify-start">
-                  <div className="bg-gray-100 px-4 py-3 rounded-2xl text-sm text-gray-500">...</div>
-                </div>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex justify-start"
+                >
+                  <div className="bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl rounded-bl-sm">
+                    <div className="flex gap-1 items-center h-4">
+                      <motion.div
+                        animate={{ scale: [1, 1.3, 1] }}
+                        transition={{ repeat: Infinity, duration: 0.8, delay: 0 }}
+                        className="w-2 h-2 rounded-full bg-gray-400"
+                      />
+                      <motion.div
+                        animate={{ scale: [1, 1.3, 1] }}
+                        transition={{ repeat: Infinity, duration: 0.8, delay: 0.2 }}
+                        className="w-2 h-2 rounded-full bg-gray-400"
+                      />
+                      <motion.div
+                        animate={{ scale: [1, 1.3, 1] }}
+                        transition={{ repeat: Infinity, duration: 0.8, delay: 0.4 }}
+                        className="w-2 h-2 rounded-full bg-gray-400"
+                      />
+                    </div>
+                  </div>
+                </motion.div>
               )}
+              <div ref={chatEndRef} />
             </div>
             <div className="flex gap-3">
               <input
@@ -322,7 +366,7 @@ export default function Analyse() {
               <button
                 onClick={handleChat}
                 disabled={chatLoading}
-                className="px-4 py-3 rounded-xl text-white font-semibold disabled:opacity-50"
+                className="px-4 py-3 rounded-xl text-white font-semibold disabled:opacity-50 transition"
                 style={{backgroundColor: '#c9a84c'}}
               >
                 →
