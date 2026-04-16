@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useLang } from '../context/LanguageContext';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -31,7 +32,7 @@ const featuresFR = [
 
 export default function Landing() {
   const navigate = useNavigate();
-  const [lang, setLang] = useState('EN');
+  const { lang, changeLang } = useLang();
 
   const features = lang === 'EN' ? featuresEN : featuresFR;
 
@@ -90,13 +91,13 @@ export default function Landing() {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
             <button
-              onClick={() => setLang('EN')}
+              onClick={() => changeLang('EN')}
               className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${lang === 'EN' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
             >
               EN
             </button>
             <button
-              onClick={() => setLang('FR')}
+              onClick={() => changeLang('FR')}
               className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${lang === 'FR' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
             >
               FR

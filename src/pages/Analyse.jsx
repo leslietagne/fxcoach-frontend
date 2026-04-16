@@ -4,13 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import { useAuth } from '../context/AuthContext';
+import { useLang } from '../context/LanguageContext';
 
 const API = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 export default function Analyse() {
   const navigate = useNavigate();
   const { user, isPremium, signOut } = useAuth();
-  const [lang, setLang] = useState('EN');
+  const { lang, changeLang } = useLang();
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState(null);
@@ -135,8 +136,8 @@ export default function Analyse() {
         <button onClick={() => navigate('/')} className="text-2xl font-bold text-gray-900">FXCoach</button>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-            <button onClick={() => setLang('EN')} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${lang === 'EN' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>EN</button>
-            <button onClick={() => setLang('FR')} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${lang === 'FR' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>FR</button>
+            <button onClick={() => changeLang('EN')} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${lang === 'EN' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>EN</button>
+            <button onClick={() => changeLang('FR')} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${lang === 'FR' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>FR</button>
           </div>
           {user ? (
             <div className="flex items-center gap-3">

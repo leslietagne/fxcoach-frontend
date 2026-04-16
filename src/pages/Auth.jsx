@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLang } from '../context/LanguageContext';
 
 export default function Auth() {
   const navigate = useNavigate();
   const { signIn, signUp } = useAuth();
-  const [lang, setLang] = useState('EN');
+  const { lang, changeLang } = useLang();
   const [tab, setTab] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -46,8 +47,8 @@ export default function Auth() {
       <nav className="bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center">
         <button onClick={() => navigate('/')} className="text-2xl font-bold text-gray-900">FXCoach</button>
         <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-          <button onClick={() => setLang('EN')} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${lang === 'EN' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>EN</button>
-          <button onClick={() => setLang('FR')} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${lang === 'FR' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>FR</button>
+          <button onClick={() => changeLang('EN')} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${lang === 'EN' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>EN</button>
+          <button onClick={() => changeLang('FR')} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${lang === 'FR' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>FR</button>
         </div>
       </nav>
 

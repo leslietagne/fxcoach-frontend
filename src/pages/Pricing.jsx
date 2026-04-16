@@ -4,11 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { PREMIUM_PRICE_ID } from '../stripe';
 import axios from 'axios';
+import { useLang } from '../context/LanguageContext';
 
 export default function Pricing() {
   const navigate = useNavigate();
   const { user } = useAuth();
-
+  const { lang, changeLang } = useLang();
 const handleCheckout = async () => {
   if (!user) {
     navigate('/auth');
@@ -24,7 +25,7 @@ const handleCheckout = async () => {
     console.error(e);
   }
 };
-  const [lang, setLang] = useState('EN');
+  const [lang, changeLang] = useLang();
   const [billing, setBilling] = useState('monthly');
 
   const t = {
@@ -113,8 +114,8 @@ const handleCheckout = async () => {
         <button onClick={() => navigate('/')} className="text-2xl font-bold text-gray-900">FXCoach</button>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-            <button onClick={() => setLang('EN')} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${lang === 'EN' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>EN</button>
-            <button onClick={() => setLang('FR')} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${lang === 'FR' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>FR</button>
+            <button onClick={() => changeLang('EN')} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${lang === 'EN' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>EN</button>
+            <button onClick={() => changeLang('FR')} className={`text-xs font-semibold px-3 py-1.5 rounded-md transition ${lang === 'FR' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>FR</button>
           </div>
           <button onClick={() => navigate(-1)} className="text-sm text-gray-500 hover:text-gray-900 transition">
             {t.back}
