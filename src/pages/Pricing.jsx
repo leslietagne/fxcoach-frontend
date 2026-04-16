@@ -25,7 +25,7 @@ const handleCheckout = async () => {
     console.error(e);
   }
 };
-  const [lang, changeLang] = useLang();
+  const {lang, changeLang} = useLang();
   const [billing, setBilling] = useState('monthly');
 
   const t = {
