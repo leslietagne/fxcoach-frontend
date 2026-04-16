@@ -327,22 +327,16 @@ export default function Analyse() {
                 </motion.div>
               ))}
               {chatLoading && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex justify-start"
-                >
-                  <div className="bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl rounded-bl-sm"><div className="bg-gray-50 border border-gray-100 px-4 py-3 rounded-2xl rounded-bl-sm">
-                    <motion.div
-                      animate={{ opacity: [1, 0.3, 1] }}
-                      transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                      style={{backgroundColor: '#c9a84c'}}
-                    >
-                      FX
-                    </motion.div>
-                  </div>
-                </motion.div>
+                <div className="flex justify-start">
+                  <motion.div
+                    animate={{ opacity: [1, 0.3, 1] }}
+                    transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                    style={{backgroundColor: '#c9a84c'}}
+                  >
+                    FX
+                  </motion.div>
+                </div>
               )}
               <div ref={chatEndRef} />
             </div>
