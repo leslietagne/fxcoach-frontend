@@ -5,7 +5,7 @@ import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import { useAuth } from '../context/AuthContext';
 
-const API = 'http://localhost:8000';
+const API = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
 export default function Analyse() {
   const navigate = useNavigate();

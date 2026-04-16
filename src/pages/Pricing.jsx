@@ -15,7 +15,7 @@ const handleCheckout = async () => {
     return;
   }
   try {
-    const res = await axios.post('http://localhost:8000/create-checkout-session', {
+    const res = await axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/create-checkout-session`, {
       user_id: user.id,
       price_id: PREMIUM_PRICE_ID,
     });
