@@ -1,9 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { useLang } from '../context/LanguageContext';
 
 export default function MentionsLegales() {
   const navigate = useNavigate();
-  const { lang } = useLang();
 
   return (
     <div className="min-h-screen bg-white font-sans">
