@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useLang } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 const GOLD = '#c9a84c';
 
@@ -30,6 +31,7 @@ function getCalendarWeeks(year, month) {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { lang, changeLang } = useLang();
+  const { isPremium } = useAuth();
 
   const [capital, setCapital] = useState(10000);
   const [targetPct, setTargetPct] = useState(10);
@@ -96,6 +98,8 @@ export default function Dashboard() {
     greenDays: lang === 'EN' ? 'Green days' : 'Jours verts',
     redDays: lang === 'EN' ? 'Red days' : 'Jours rouges',
     noData: lang === 'EN' ? 'Run an analysis to see your trading calendar.' : 'Lance une analyse pour voir ton calendrier de trading.',
+    premiumLock: lang === 'EN' ? '🔒 Premium feature — upgrade to unlock' : '🔒 Fonctionnalité Premium — upgrade pour débloquer',
+    upgradeBtn: lang === 'EN' ? '✨ Upgrade to Premium — €19/mo' : '✨ Passer Premium — €19/mois',
   };
 
   const getProgressStatus = () => {
@@ -202,7 +206,7 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        {/* CALENDRIER */}
+        {/* CALENDRIER — FREE */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
           className="p-6 rounded-2xl border border-gray-200 mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">{t.calendar}</h2>
@@ -278,17 +282,24 @@ export default function Dashboard() {
           )}
         </motion.div>
 
-        {/* DISCIPLINE SCORE */}
+        {/* DISCIPLINE SCORE — PREMIUM ONLY */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
           className="p-6 rounded-2xl border border-gray-200 mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">{t.score}</h2>
-          {savedBiases.length === 0 ? (
+          {!isPremium ? (
+            <div className="text-center py-6">
+              <p className="text-gray-500 text-sm mb-4">{t.premiumLock}</p>
+              <button onClick={() => navigate('/pricing')}
+                className="px-6 py-2.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 transition"
+                style={{ backgroundColor: GOLD }}>
+                {t.upgradeBtn}
+              </button>
+            </div>
+          ) : savedBiases.length === 0 ? (
             <div className="flex items-center gap-4">
               <div className="text-5xl font-bold" style={{ color: GOLD }}>—</div>
               <p className="text-sm text-gray-400">
-                {lang === 'EN'
-                  ? 'Run an analysis first to get your discipline score.'
-                  : 'Lance d\'abord une analyse pour obtenir ton score de discipline.'}
+                {lang === 'EN' ? 'Run an analysis first to get your discipline score.' : 'Lance d\'abord une analyse pour obtenir ton score.'}
               </p>
             </div>
           ) : (
@@ -323,15 +334,17 @@ export default function Dashboard() {
               </div>
             </>
           )}
-          <button onClick={() => navigate('/analyse')}
-            className="mt-4 px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition hover:opacity-90"
-            style={{ backgroundColor: GOLD }}>
-            {t.analyse}
-          </button>
+          {isPremium && (
+            <button onClick={() => navigate('/analyse')}
+              className="mt-4 px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition hover:opacity-90"
+              style={{ backgroundColor: GOLD }}>
+              {t.analyse}
+            </button>
+          )}
         </motion.div>
 
-        {/* KEY POINTS */}
-        {savedBiases.length > 0 && (
+        {/* KEY POINTS — PREMIUM ONLY */}
+        {isPremium && savedBiases.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
             className="p-6 rounded-2xl border border-gray-200 mb-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-6">{t.keypoints}</h2>
@@ -356,7 +369,7 @@ export default function Dashboard() {
           </motion.div>
         )}
 
-        {/* NOTES */}
+        {/* NOTES — FREE */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
           className="p-6 rounded-2xl border border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">{t.notes}</h2>
