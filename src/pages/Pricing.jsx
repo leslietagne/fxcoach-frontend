@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { stripePromise, PREMIUM_PRICE_ID } from '../stripe';
+import { PREMIUM_PRICE_ID } from '../stripe';
 import axios from 'axios';
 
 export default function Pricing() {
