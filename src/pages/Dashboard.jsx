@@ -13,7 +13,7 @@ const DAYS_FR = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
 function getCalendarWeeks(year, month) {
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
-  const startDow = (firstDay.getDay() + 6) % 7; // Monday = 0
+  const startDow = (firstDay.getDay() + 6) % 7;
   const weeks = [];
   let week = Array(startDow).fill(null);
   for (let d = 1; d <= lastDay.getDate(); d++) {
@@ -41,8 +41,9 @@ export default function Dashboard() {
   const [calYear, setCalYear] = useState(today.getFullYear());
   const [calMonth, setCalMonth] = useState(today.getMonth());
 
-  // Charger daily_pnl depuis localStorage
   const rawDailyPnl = JSON.parse(localStorage.getItem('fxcoach_daily_pnl') || '[]');
+  const savedBiases = JSON.parse(localStorage.getItem('fxcoach_biases') || '[]');
+
   const dailyMap = {};
   rawDailyPnl.forEach(({ date, pnl }) => { dailyMap[date] = pnl; });
 
@@ -50,12 +51,28 @@ export default function Dashboard() {
   const drawdownAmount = capital * drawdownPct / 100;
   const progressPct = Math.min(Math.max((currentPnl / targetAmount) * 100, 0), 100);
 
-  // Stats du mois affiché
   const monthStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}`;
   const monthEntries = Object.entries(dailyMap).filter(([d]) => d.startsWith(monthStr));
   const monthPnl = monthEntries.reduce((sum, [, v]) => sum + v, 0);
   const greenDays = monthEntries.filter(([, v]) => v > 0).length;
   const redDays = monthEntries.filter(([, v]) => v < 0).length;
+
+  const disciplineScore = Math.max(0, savedBiases.reduce((score, b) => {
+    if (b.severity === 'CRITICAL') return score - 30;
+    if (b.severity === 'HIGH') return score - 20;
+    if (b.severity === 'MEDIUM') return score - 10;
+    return score;
+  }, 100));
+
+  const scoreLabel = disciplineScore >= 80
+    ? (lang === 'EN' ? 'Excellent' : 'Excellent')
+    : disciplineScore >= 60
+    ? (lang === 'EN' ? 'Good' : 'Bon')
+    : disciplineScore >= 40
+    ? (lang === 'EN' ? 'Needs work' : 'À améliorer')
+    : (lang === 'EN' ? 'Critical' : 'Critique');
+
+  const scoreColor = disciplineScore >= 70 ? '#4caf7d' : disciplineScore >= 40 ? GOLD : '#e8604c';
 
   const t = {
     title: lang === 'EN' ? 'Dashboard — Challenge Tracker' : 'Dashboard — Suivi de challenge',
@@ -66,6 +83,7 @@ export default function Dashboard() {
     currentPnlLabel: lang === 'EN' ? 'Current P&L (€)' : 'P&L actuel (€)',
     progress: lang === 'EN' ? '📈 Progress toward target' : '📈 Progression vers l\'objectif',
     score: lang === 'EN' ? '🎯 Discipline score' : '🎯 Score de discipline',
+    keypoints: lang === 'EN' ? '✅ Key points for your next trades' : '✅ Key points pour tes prochains trades',
     calendar: lang === 'EN' ? '📅 Trading calendar' : '📅 Calendrier de trading',
     notes: lang === 'EN' ? '📝 My personal notes' : '📝 Mes notes personnelles',
     notesPlaceholder: lang === 'EN' ? 'Write your observations, resolutions, focus points...' : 'Écris tes observations, tes résolutions, tes points d\'attention...',
@@ -188,7 +206,6 @@ export default function Dashboard() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
           className="p-6 rounded-2xl border border-gray-200 mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">{t.calendar}</h2>
-
           {rawDailyPnl.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-400 text-sm mb-4">{t.noData}</p>
@@ -200,21 +217,16 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
-              {/* Navigation mois */}
               <div className="flex items-center justify-between mb-4">
                 <button onClick={prevMonth} className="p-2 rounded-lg hover:bg-gray-100 transition text-gray-500 font-bold">←</button>
                 <span className="font-semibold text-gray-900">{months[calMonth]} {calYear}</span>
                 <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-gray-100 transition text-gray-500 font-bold">→</button>
               </div>
-
-              {/* En-têtes jours */}
               <div className="grid grid-cols-7 mb-2">
                 {days.map(d => (
                   <div key={d} className="text-center text-xs font-semibold text-gray-400 py-1">{d}</div>
                 ))}
               </div>
-
-              {/* Semaines */}
               {weeks.map((week, wi) => (
                 <div key={wi} className="grid grid-cols-7 gap-1 mb-1">
                   {week.map((day, di) => {
@@ -222,7 +234,6 @@ export default function Dashboard() {
                     const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                     const pnl = dailyMap[dateStr];
                     const isToday = dateStr === today.toISOString().split('T')[0];
-
                     if (pnl !== undefined) {
                       const isGreen = pnl >= 0;
                       return (
@@ -249,8 +260,6 @@ export default function Dashboard() {
                   })}
                 </div>
               ))}
-
-              {/* Résumé du mois */}
               {monthEntries.length > 0 && (
                 <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-100">
                   {[
@@ -273,20 +282,79 @@ export default function Dashboard() {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
           className="p-6 rounded-2xl border border-gray-200 mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">{t.score}</h2>
-          <div className="flex items-center gap-4">
-            <div className="text-5xl font-bold" style={{ color: GOLD }}>—</div>
-            <p className="text-sm text-gray-400">
-              {lang === 'EN'
-                ? 'Run an analysis first to get your discipline score based on your detected biases.'
-                : 'Lance d\'abord une analyse pour obtenir ton score de discipline basé sur tes biais détectés.'}
-            </p>
-          </div>
+          {savedBiases.length === 0 ? (
+            <div className="flex items-center gap-4">
+              <div className="text-5xl font-bold" style={{ color: GOLD }}>—</div>
+              <p className="text-sm text-gray-400">
+                {lang === 'EN'
+                  ? 'Run an analysis first to get your discipline score.'
+                  : 'Lance d\'abord une analyse pour obtenir ton score de discipline.'}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-6 mb-4">
+                <div className="text-6xl font-bold" style={{ color: scoreColor }}>{disciplineScore}</div>
+                <div>
+                  <div className="text-sm text-gray-400 uppercase tracking-wider mb-1">/100</div>
+                  <div className="font-semibold text-lg" style={{ color: scoreColor }}>{scoreLabel}</div>
+                </div>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-3 mb-4 overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${disciplineScore}%` }}
+                  transition={{ duration: 0.8, ease: 'easeOut' }}
+                  className="h-3 rounded-full"
+                  style={{ backgroundColor: scoreColor }}
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-4 mt-4">
+                {[
+                  { label: 'Score', value: `${disciplineScore}/100` },
+                  { label: 'Status', value: scoreLabel },
+                  { label: lang === 'EN' ? 'Biases' : 'Biais', value: savedBiases.filter(b => b.severity !== 'POSITIVE').length },
+                ].map(({ label, value }) => (
+                  <div key={label} className="p-3 rounded-xl bg-gray-50 text-center">
+                    <div className="font-bold text-gray-900">{value}</div>
+                    <div className="text-xs text-gray-400 uppercase tracking-wider mt-1">{label}</div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
           <button onClick={() => navigate('/analyse')}
             className="mt-4 px-6 py-2.5 rounded-xl text-white text-sm font-semibold transition hover:opacity-90"
             style={{ backgroundColor: GOLD }}>
             {t.analyse}
           </button>
         </motion.div>
+
+        {/* KEY POINTS */}
+        {savedBiases.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
+            className="p-6 rounded-2xl border border-gray-200 mb-8">
+            <h2 className="text-lg font-semibold text-gray-900 mb-6">{t.keypoints}</h2>
+            <div className="space-y-3">
+              {savedBiases
+                .filter(b => b.severity !== 'POSITIVE')
+                .map((b, i) => {
+                  const styles = {
+                    CRITICAL: 'bg-red-50 border-red-200 text-red-700',
+                    HIGH: 'bg-orange-50 border-orange-200 text-orange-700',
+                    MEDIUM: 'bg-blue-50 border-blue-200 text-blue-700',
+                  };
+                  const icons = { CRITICAL: '🔴', HIGH: '🟠', MEDIUM: '🔵' };
+                  return (
+                    <div key={i} className={`p-4 rounded-xl border text-sm ${styles[b.severity] || 'bg-gray-50 border-gray-200 text-gray-700'}`}>
+                      <span className="mr-2">{icons[b.severity] || '⚪'}</span>
+                      <strong>{b.name}</strong> — {b.advice}
+                    </div>
+                  );
+                })}
+            </div>
+          </motion.div>
+        )}
 
         {/* NOTES */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}

@@ -66,6 +66,7 @@ export default function Analyse() {
       setBiases(res.data.biases);
       setHourStats(res.data.hour_stats);
       localStorage.setItem('fxcoach_daily_pnl', JSON.stringify(res.data.daily_pnl || []));
+      localStorage.setItem('fxcoach_biases', JSON.stringify(res.data.biases || [])); // ← ajouter
     } catch (e) {
       console.error(e);
     } finally {
