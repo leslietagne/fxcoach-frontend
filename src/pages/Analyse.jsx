@@ -1,15 +1,18 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LanguageContext';
 
 const API = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const ONESHOT_PRICE_ID = process.env.REACT_APP_STRIPE_PRICE_ID_ONESHOT;
+const GOLD = '#c9a84c';
 
 export default function Analyse() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, isPremium, signOut } = useAuth();
   const { lang, changeLang } = useLang();
   const [file, setFile] = useState(null);
@@ -22,13 +25,24 @@ export default function Analyse() {
   const [chat, setChat] = useState([]);
   const [question, setQuestion] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
+  const [hasPaidAnalysis, setHasPaidAnalysis] = useState(false);
   const chatEndRef = useRef(null);
+
+  // Détecter retour de paiement one-shot
+  useEffect(() => {
+    const paid = searchParams.get('paid');
+    if (paid === 'true') {
+      setHasPaidAnalysis(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [chat]);
+
+  const canAccessPremium = isPremium || hasPaidAnalysis;
 
   const t = {
     title: lang === 'EN' ? 'Your trade analysis' : 'Analyse de tes trades',
@@ -43,11 +57,13 @@ export default function Analyse() {
     premiumLock: lang === 'EN' ? '🔒 Premium feature — upgrade to unlock' : '🔒 Fonctionnalité Premium — upgrade pour débloquer',
     loading: lang === 'EN' ? 'Analyzing your trades...' : 'Analyse en cours...',
     upgradeBtn: lang === 'EN' ? '✨ Upgrade to Premium — €19/mo' : '✨ Passer Premium — €19/mois',
+    oneshotBtn: lang === 'EN' ? '⚡ Get full report — €4.99 one-time' : '⚡ Rapport complet — €4.99 unique',
     logout: lang === 'EN' ? 'Logout' : 'Déconnexion',
     login: lang === 'EN' ? 'Login' : 'Connexion',
     dashboardTitle: lang === 'EN' ? '📊 Track your challenge progress' : '📊 Suis ta progression de challenge',
     dashboardSub: lang === 'EN' ? 'Set your targets and monitor your P&L over time.' : 'Définis tes objectifs et suis ton P&L dans le temps.',
     dashboardBtn: lang === 'EN' ? 'Open Dashboard →' : 'Ouvrir le Dashboard →',
+    paidSuccess: lang === 'EN' ? '✅ Payment confirmed — full report unlocked!' : '✅ Paiement confirmé — rapport complet débloqué !',
   };
 
   const handleAnalyze = async () => {
@@ -66,7 +82,7 @@ export default function Analyse() {
       setBiases(res.data.biases);
       setHourStats(res.data.hour_stats);
       localStorage.setItem('fxcoach_daily_pnl', JSON.stringify(res.data.daily_pnl || []));
-      localStorage.setItem('fxcoach_biases', JSON.stringify(res.data.biases || [])); // ← ajouter
+      localStorage.setItem('fxcoach_biases', JSON.stringify(res.data.biases || []));
     } catch (e) {
       console.error(e);
     } finally {
@@ -85,6 +101,19 @@ export default function Analyse() {
       console.error(e);
     } finally {
       setReportLoading(false);
+    }
+  };
+
+  const handleOneShot = async () => {
+    if (!user) { navigate('/auth'); return; }
+    try {
+      const res = await axios.post(`${API}/create-payment-session`, {
+        user_id: user.id,
+        price_id: ONESHOT_PRICE_ID,
+      });
+      window.location.href = res.data.url;
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -163,7 +192,7 @@ export default function Analyse() {
             <button
               onClick={() => navigate('/pricing')}
               className="text-sm text-white px-4 py-2 rounded-lg font-semibold transition"
-              style={{backgroundColor: '#c9a84c'}}
+              style={{backgroundColor: GOLD}}
             >
               {lang === 'EN' ? '✨ Premium — €19/mo' : '✨ Premium — €19/mois'}
             </button>
@@ -172,6 +201,14 @@ export default function Analyse() {
       </nav>
 
       <div className="max-w-3xl mx-auto pt-28 pb-16 px-6">
+
+        {/* SUCCÈS PAIEMENT ONE-SHOT */}
+        {hasPaidAnalysis && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+            className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-6 text-center text-green-700 font-semibold text-sm">
+            {t.paidSuccess}
+          </motion.div>
+        )}
 
         {/* UPLOAD */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl border border-gray-200 p-8 mb-6">
@@ -188,7 +225,7 @@ export default function Analyse() {
             onClick={handleAnalyze}
             disabled={!file || loading}
             className="mt-6 w-full py-4 rounded-xl text-white font-semibold text-lg transition disabled:opacity-50"
-            style={{backgroundColor: '#c9a84c'}}
+            style={{backgroundColor: GOLD}}
           >
             {loading ? t.loading : t.analyze}
           </motion.button>
@@ -232,7 +269,7 @@ export default function Analyse() {
             <button
               onClick={() => navigate('/dashboard')}
               className="px-5 py-2.5 rounded-xl text-white font-semibold text-sm transition hover:opacity-90 whitespace-nowrap"
-              style={{backgroundColor: '#c9a84c'}}
+              style={{backgroundColor: GOLD}}
             >
               {t.dashboardBtn}
             </button>
@@ -243,7 +280,7 @@ export default function Analyse() {
         {biases && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl border border-gray-200 p-8 mb-6">
             <h2 className="text-lg font-bold text-gray-900 mb-6">🧠 {t.biasesTitle}</h2>
-            {isPremium
+            {canAccessPremium
               ? biases.map((b, i) => (
                 <div key={i} className={`border rounded-xl p-5 mb-4 ${severityColor(b.severity)}`}>
                   <div className="flex items-center gap-3 mb-2">
@@ -268,15 +305,23 @@ export default function Analyse() {
                       <p className="text-sm text-gray-500 italic">💡 {String(b.advice)}</p>
                     </div>
                   ))}
-                  <div className="border border-gray-200 rounded-xl p-5 text-center bg-gray-50">
-                    <p className="text-sm text-gray-500 mb-3">{t.premiumLock}</p>
-                    <button
-                      onClick={() => navigate('/pricing')}
-                      className="px-6 py-2 rounded-lg text-white text-sm font-semibold"
-                      style={{backgroundColor: '#c9a84c'}}
-                    >
-                      {t.upgradeBtn}
-                    </button>
+                  <div className="border border-gray-200 rounded-xl p-6 text-center bg-gray-50">
+                    <p className="text-sm text-gray-500 mb-4">{t.premiumLock}</p>
+                    <div className="flex flex-col gap-3 items-center">
+                      <button
+                        onClick={handleOneShot}
+                        className="px-6 py-3 rounded-xl text-white text-sm font-semibold w-full max-w-xs"
+                        style={{backgroundColor: GOLD}}
+                      >
+                        {t.oneshotBtn}
+                      </button>
+                      <button
+                        onClick={() => navigate('/pricing')}
+                        className="px-6 py-2 rounded-xl text-sm font-semibold border border-gray-200 hover:bg-gray-100 transition w-full max-w-xs text-gray-600"
+                      >
+                        {t.upgradeBtn}
+                      </button>
+                    </div>
                   </div>
                 </>
               )
@@ -288,16 +333,24 @@ export default function Analyse() {
         {stats && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl border border-gray-200 p-8 mb-6">
             <h2 className="text-lg font-bold text-gray-900 mb-6">🎯 {t.coachTitle}</h2>
-            {!isPremium ? (
+            {!canAccessPremium ? (
               <div className="text-center py-8">
                 <p className="text-gray-500 mb-4">{t.premiumLock}</p>
-                <button
-                  onClick={() => navigate('/pricing')}
-                  className="px-6 py-3 rounded-xl text-white font-semibold"
-                  style={{backgroundColor: '#c9a84c'}}
-                >
-                  {t.upgradeBtn}
-                </button>
+                <div className="flex flex-col gap-3 items-center">
+                  <button
+                    onClick={handleOneShot}
+                    className="px-6 py-3 rounded-xl text-white font-semibold w-full max-w-xs"
+                    style={{backgroundColor: GOLD}}
+                  >
+                    {t.oneshotBtn}
+                  </button>
+                  <button
+                    onClick={() => navigate('/pricing')}
+                    className="px-6 py-2 rounded-xl text-sm font-semibold border border-gray-200 hover:bg-gray-100 transition w-full max-w-xs text-gray-600"
+                  >
+                    {t.upgradeBtn}
+                  </button>
+                </div>
               </div>
             ) : (
               <>
@@ -306,7 +359,7 @@ export default function Analyse() {
                     onClick={handleGenerateReport}
                     disabled={reportLoading}
                     className="w-full py-3 rounded-xl text-white font-semibold disabled:opacity-50"
-                    style={{backgroundColor: '#c9a84c'}}
+                    style={{backgroundColor: GOLD}}
                   >
                     {reportLoading ? '⏳ Generating...' : t.generateReport}
                   </button>
@@ -322,7 +375,7 @@ export default function Analyse() {
         )}
 
         {/* CHAT */}
-        {stats && isPremium && (
+        {stats && canAccessPremium && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl border border-gray-200 p-8">
             <h2 className="text-lg font-bold text-gray-900 mb-6">💬 {t.chatTitle}</h2>
             <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
@@ -340,7 +393,7 @@ export default function Analyse() {
                         ? 'text-white rounded-br-sm'
                         : 'bg-gray-50 text-gray-700 rounded-bl-sm border border-gray-100'
                     }`}
-                    style={msg.role === 'user' ? {backgroundColor: '#c9a84c'} : {}}
+                    style={msg.role === 'user' ? {backgroundColor: GOLD} : {}}
                   >
                     {msg.role === 'assistant' ? (
                       <ReactMarkdown components={markdownComponents}>{msg.content}</ReactMarkdown>
@@ -356,7 +409,7 @@ export default function Analyse() {
                     animate={{ opacity: [1, 0.3, 1] }}
                     transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
                     className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                    style={{backgroundColor: '#c9a84c'}}
+                    style={{backgroundColor: GOLD}}
                   >
                     FX
                   </motion.div>
@@ -376,7 +429,7 @@ export default function Analyse() {
                 onClick={handleChat}
                 disabled={chatLoading}
                 className="px-4 py-3 rounded-xl text-white font-semibold disabled:opacity-50 transition"
-                style={{backgroundColor: '#c9a84c'}}
+                style={{backgroundColor: GOLD}}
               >
                 →
               </button>
