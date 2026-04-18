@@ -4,42 +4,47 @@
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+    <meta name="theme-color" content="#c9a84c" />
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
+    <!-- SEO -->
+    <title>FXCoach — AI Trading Coach for Prop Traders</title>
+    <meta name="description" content="FXCoach analyzes your trades and detects exactly which behavioral biases are costing you your FTMO challenge. Upload your CSV, get your report in 30 seconds." />
+    <meta name="keywords" content="FTMO, prop trading, trading coach, trading journal, behavioral biases, forex, XAUUSD, trading psychology" />
+    <link rel="canonical" href="https://fxcoach.app" />
+
+    <!-- Open Graph (réseaux sociaux) -->
+    <meta property="og:title" content="FXCoach — AI Trading Coach for Prop Traders" />
+    <meta property="og:description" content="Upload your CSV. Get your behavioral analysis in 30 seconds. No journaling required." />
+    <meta property="og:url" content="https://fxcoach.app" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://fxcoach.app/logo512.png" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="FXCoach — AI Trading Coach for Prop Traders" />
+    <meta name="twitter:description" content="Upload your CSV. Get your behavioral analysis in 30 seconds. No journaling required." />
+    <meta name="twitter:image" content="https://fxcoach.app/logo512.png" />
+
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=%REACT_APP_GA_ID%"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '%REACT_APP_GA_ID%');
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
-
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
   </body>
 </html>
