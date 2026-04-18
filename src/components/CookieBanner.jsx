@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLang } from '../../context/LanguageContext';
+import { useLang } from '../context/LanguageContext';
 
 export default function CookieBanner() {
   const { lang } = useLang();
