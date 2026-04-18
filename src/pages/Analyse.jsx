@@ -26,9 +26,9 @@ export default function Analyse() {
   const [question, setQuestion] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [hasPaidAnalysis, setHasPaidAnalysis] = useState(false);
+  const [error, setError] = useState(null);
   const chatEndRef = useRef(null);
 
-  // Détecter retour de paiement one-shot
   useEffect(() => {
     const paid = searchParams.get('paid');
     if (paid === 'true') {
@@ -64,6 +64,9 @@ export default function Analyse() {
     dashboardSub: lang === 'EN' ? 'Set your targets and monitor your P&L over time.' : 'Définis tes objectifs et suis ton P&L dans le temps.',
     dashboardBtn: lang === 'EN' ? 'Open Dashboard →' : 'Ouvrir le Dashboard →',
     paidSuccess: lang === 'EN' ? '✅ Payment confirmed — full report unlocked!' : '✅ Paiement confirmé — rapport complet débloqué !',
+    errorMsg: lang === 'EN'
+      ? '❌ Could not read your CSV. Make sure it\'s a valid MetaTrader, FTMO or TradingView export.'
+      : '❌ Impossible de lire ton CSV. Assure-toi que c\'est un export valide MetaTrader, FTMO ou TradingView.',
   };
 
   const handleAnalyze = async () => {
@@ -73,18 +76,23 @@ export default function Analyse() {
     setBiases(null);
     setReport(null);
     setChat([]);
+    setError(null);
     const formData = new FormData();
     formData.append('file', file);
     formData.append('lang', lang);
     try {
       const res = await axios.post(`${API}/analyze`, formData);
+      if (res.data.error) {
+        setError(t.errorMsg);
+        return;
+      }
       setStats(res.data.stats);
       setBiases(res.data.biases);
       setHourStats(res.data.hour_stats);
       localStorage.setItem('fxcoach_daily_pnl', JSON.stringify(res.data.daily_pnl || []));
       localStorage.setItem('fxcoach_biases', JSON.stringify(res.data.biases || []));
     } catch (e) {
-      console.error(e);
+      setError(t.errorMsg);
     } finally {
       setLoading(false);
     }
@@ -229,6 +237,13 @@ export default function Analyse() {
           >
             {loading ? t.loading : t.analyze}
           </motion.button>
+
+          {/* MESSAGE ERREUR CSV */}
+          {error && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+              {error}
+            </div>
+          )}
         </motion.div>
 
         {/* STATS */}
